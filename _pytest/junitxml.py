@@ -116,6 +116,11 @@ class LogXML(object):
         self.passed += 1
         self._write_captured_output(report)
 
+    def _format_sections(self, report):
+        return "\n\n".join("== {}\n{}".format(secname, content)
+                           for secname, content in report.sections
+                           if not secname.startswith("Captured std"))
+
     def append_failure(self, report):
         #msg = str(report.longrepr.reprtraceback.extraline)
         if hasattr(report, "wasxfail"):
@@ -124,6 +129,8 @@ class LogXML(object):
             self.skipped += 1
         else:
             fail = Junit.failure(message="test failure")
+            fail.append(self._format_sections(report))
+            fail.append("\n\n== Stacktrace\n")
             fail.append(bin_xml_escape(report.longrepr))
             self.append(fail)
             self.failed += 1
