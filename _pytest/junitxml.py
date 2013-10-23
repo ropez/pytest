@@ -130,6 +130,11 @@ class _NodeReporter(object):
         self.add_stats('passed')
         self._write_captured_output(report)
 
+    def _format_sections(self, report):
+        return "\n\n".join("== {}\n{}".format(secname, content)
+                           for secname, content in report.sections
+                           if not secname.startswith("Captured std"))
+
     def append_failure(self, report):
         # msg = str(report.longrepr.reprtraceback.extraline)
         if hasattr(report, "wasxfail"):
@@ -145,6 +150,8 @@ class _NodeReporter(object):
                 message = str(report.longrepr)
             message = bin_xml_escape(message)
             fail = Junit.failure(message=message)
+            fail.append(self._format_sections(report))
+            fail.append("\n\n== Stacktrace\n")
             fail.append(bin_xml_escape(report.longrepr))
             self.append(fail)
         self._write_captured_output(report)
